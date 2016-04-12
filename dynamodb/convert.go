@@ -7,19 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
-// MapToDynamoDBItem takes a map object and returns a map which can be
-// used to send requests to DynamoDB using the AWS Go SDK.
-func MapToDynamoDBItem(in map[string]interface{}) (out map[string]*dynamodb.AttributeValue) {
-	out = make(map[string]*dynamodb.AttributeValue)
-
-	for k, i := range in {
-		out[k] = goValToAwsVal(i)
-	}
-
-	return
-}
-
-func goValToAwsVal(i interface{}) *dynamodb.AttributeValue {
+// InterfaceToDynamoDBItem takes an interface{} and returns a
+// dynamodb.AttributeValue which can be used to send data to DynamoDB.
+func InterfaceToDynamoDBItem(i interface{}) *dynamodb.AttributeValue {
 	switch v := i.(type) {
 	case nil:
 		return &dynamodb.AttributeValue{
@@ -52,8 +42,10 @@ func goValToAwsVal(i interface{}) *dynamodb.AttributeValue {
 			NS: val,
 		}
 	case string:
-		return &dynamodb.AttributeValue{
-			S: aws.String(v),
+		if v != "" {
+			return &dynamodb.AttributeValue{
+				S: aws.String(v),
+			}
 		}
 	case []string:
 		var val []*string
@@ -80,18 +72,25 @@ func goValToAwsVal(i interface{}) *dynamodb.AttributeValue {
 		var val []*dynamodb.AttributeValue
 
 		for _, li := range v {
-			val = append(val, goValToAwsVal(li))
+			val = append(val, InterfaceToDynamoDBItem(li))
 		}
 
 		return &dynamodb.AttributeValue{
 			L: val,
 		}
 	case map[string]interface{}:
-		out2 := MapToDynamoDBItem(v)
+		out2 := make(map[string]*dynamodb.AttributeValue)
+
+		for k, v2 := range v {
+			if ret := InterfaceToDynamoDBItem(v2); ret != nil {
+				out2[k] = ret
+			}
+		}
 
 		return &dynamodb.AttributeValue{
 			M: out2,
 		}
+
 	default:
 		// do nothing
 		return nil

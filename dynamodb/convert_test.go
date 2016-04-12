@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestMapToDynamoDBItem(t *testing.T) {
+func TestInterfaceToDynamoDBItem(t *testing.T) {
 	in := make(map[string]interface{})
 
 	in["Number"] = 1
@@ -13,6 +13,7 @@ func TestMapToDynamoDBItem(t *testing.T) {
 	in["FloatList"] = []float64{1.1, 2.2, 3.3}
 	in["Null"] = nil
 	in["String"] = "hey world"
+	in["StringEmpty"] = ""
 	in["StringList"] = []string{"hey", "world"}
 	in["Bool"] = false
 	in["Bytes"] = []byte("meh")
@@ -24,7 +25,8 @@ func TestMapToDynamoDBItem(t *testing.T) {
 	innerMap["Float"] = 0.123
 	innerMap["FloatList"] = []float64{1.1, 2.2, 3.3}
 	innerMap["Null"] = nil
-	innerMap["String"] = "hey world"
+	innerMap["String"] = "hello world"
+	innerMap["StringEmpty"] = ""
 	innerMap["StringList"] = []string{"hey", "world"}
 	innerMap["Bool"] = false
 	innerMap["Bytes"] = []byte("meh")
@@ -32,13 +34,29 @@ func TestMapToDynamoDBItem(t *testing.T) {
 
 	in["Map"] = innerMap
 
-	results := MapToDynamoDBItem(in)
+	results := InterfaceToDynamoDBItem(in)
 
-	if *results["Number"].N != "1" {
-		t.Errorf("Invalid object for Number %s\n", results["Number"])
+	if *results.M["String"].S != "hey world" {
+		t.Errorf("Invalid object for Number %s\n", results.M["String"].S)
 	}
 
-	if *results["Map"].M["Float"].N != "0.123" {
-		t.Errorf("Invalid object for Number %v\n", *results["Map"])
+	if _, ok := results.M["StringEmpty"]; ok {
+		t.Errorf("Invalid object for Number %s\n", results.M["StringEmpty"].S)
+	}
+
+	if *results.M["Map"].M["String"].S != "hello world" {
+		t.Errorf("Invalid object for Number %s\n", *results.M["Map"].M["String"].S)
+	}
+
+	if _, ok := results.M["Map"].M["StringEmpty"]; ok {
+		t.Errorf("Invalid object for Number %s\n", *results.M["Map"].M["String"].S)
+	}
+
+	if *results.M["Number"].N != "1" {
+		t.Errorf("Invalid object for Number %s\n", results.M["Number"])
+	}
+
+	if *results.M["Map"].M["Float"].N != "0.123" {
+		t.Errorf("Invalid object for Number %v\n", *results.M["Map"])
 	}
 }
