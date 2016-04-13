@@ -98,3 +98,49 @@ func InterfaceToDynamoDBItem(i interface{}) *dynamodb.AttributeValue {
 
 	return nil
 }
+
+func DynamoDBItemToInterface(in *dynamodb.AttributeValue, o interface{}) {
+	var itemConverter = func(i *dynamodb.AttributeValue) interface{} {
+		fmt.Println(*i.S)
+		switch {
+		// 		_ struct{}
+		// B []byte
+		// A Binary data type.
+
+		// B is automatically base64 encoded/decoded by the SDK.
+
+		// BOOL *bool
+		// A Boolean data type.
+
+		// BS [][]byte
+		// A Binary Set data type.
+
+		// L []*AttributeValue
+		// A List of attribute values.
+
+		// M map[string]*AttributeValue
+		// A Map of attribute values.
+
+		// N *string
+		// A Number data type.
+
+		// NS []*string
+		// A Number Set data type.
+
+		// NULL *bool
+		// A Null data type.
+
+		case i.S != nil:
+			fmt.Println(i.S)
+			return *i.S
+
+			// SS []*string
+			// A String Set data type.
+
+		}
+
+		return nil
+	}
+
+	o = itemConverter(in)
+}

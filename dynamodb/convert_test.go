@@ -2,6 +2,9 @@ package acksin_dynamodb
 
 import (
 	"testing"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
 func TestInterfaceToDynamoDBItem(t *testing.T) {
@@ -58,5 +61,18 @@ func TestInterfaceToDynamoDBItem(t *testing.T) {
 
 	if *results.M["Map"].M["Float"].N != "0.123" {
 		t.Errorf("Invalid object for Number %v\n", *results.M["Map"])
+	}
+}
+
+func TestDynamoDBItemToInterface(t *testing.T) {
+
+	var (
+		testString string
+	)
+
+	DynamoDBItemToInterface(&dynamodb.AttributeValue{S: aws.String("foobar")}, &testString)
+
+	if testString != "foobar" {
+		t.Errorf("Didn't convert string correctly. Got %s", testString)
 	}
 }
